@@ -21,10 +21,13 @@ function read_rocks() {
 }
 
 function remove_rocks() {
-  trash-put .rocks
+  if [[ -d .rocks ]]
+  then
+    trash-put .rocks
+  fi
 }
 
-function install() {
+function install_all() {
   read_rocks
   for rock in $rocks
   do
@@ -96,8 +99,14 @@ case "$1" in
     echo "$rocks"
     ;;
 
-  update) remove_rocks
-    install
+  install)
+    shift
+    luarocks --tree=.rocks install "$@"
+    ;;
+
+  update_all)
+    remove_rocks
+    install_all
     ;;
 
   install_config_file) install_config_file
@@ -152,7 +161,7 @@ case "$1" in
       filename)
         lua -e  "dofile('rockspec'); print(package .. '-' .. version .. '.rockspec')"
         ;;
-      *) echo "unknown command: $2"
+      *) echo "unknown command for rockspec: $2"
         exit 1
         ;;
     esac
