@@ -11,30 +11,27 @@ cmd=$1
 set -u -e -o pipefail
 
 
-mkdir -p conf
-touch conf/lua_rocks
 
-rocks=$(cat conf/lua_rocks)
+lua_rocks=conf/lua_rocks
+deploy_rocks=conf/lua_rocks.deploy
+install_rock="luarocks install --tree=.rocks"
+
+function read_rocks() {
+  rocks=$(cat conf/lua_rocks)
+}
 
 function remove_rocks() {
   trash-put .rocks
 }
 
-function install_rocks() {
+function install() {
+  read_rocks
   for rock in $rocks
   do
-    luarocks install $rock --tree=.rocks
+     $install_rock $rock
   done
 }
 
-function list_rocks() {
-
-  for rock in $rocks
-  do
-    echo $rock
-  done
-
-}
 
 function install_config_file() {
 config_content="
@@ -59,7 +56,31 @@ rocks_trees = {
   sudo mv -f /tmp/lua.config $config
 }
 
+function push_rock () {
+  cp rockspec /apps/rocks/rocks/$(lrm rockspec filename)
+  luarocks make --pack-binary-rock
+
+  mv *.rock /apps/rocks/rocks
+
+  cd /apps/rocks
+  luarocks-admin make-manifest rocks
+
+  git add rocks/*
+  if [[ ! -z "$(git status --porcelain)" ]]
+  then
+    git commit -m "Added: new rockspecs"
+    git push origin master
+  fi
+}
+
 function init() {
+  mkdir -p conf
+  if [[ ! -f $lua_rocks ]]
+  then
+    echo penlight   >> $lua_rocks
+    echo underscore >> $lua_rocks
+  fi
+
   if ! grep --quiet "^.rocks$" .gitignore
   then
     echo ".rocks" >> .gitignore
@@ -68,11 +89,15 @@ function init() {
 
 case "$1" in
 
-  list) list_rocks
+  # === Installing lua rocks... ===========================================
+
+  list)
+    read_rocks
+    echo "$rocks"
     ;;
 
   update) remove_rocks
-    install_rocks
+    install
     ;;
 
   install_config_file) install_config_file
@@ -81,7 +106,56 @@ case "$1" in
   init) init
     ;;
 
+  # === Deploying an app... ===============================================
+
+  generate_deploy)
+    lrm list_installed > $deploy_rocks
+    cat $deploy_rocks
+    ;;
+
+  install_deploy)
+    rocks="$(cat $deploy_rocks)"
+    cat $deploy_rocks | while read line; do
+      echo -e "Installing: $line\n"
+      $install_rock $line
+    done
+    ;;
+
+  list_installed)
+    dir=.rocks/lib/luarocks/rocks
+    cur=$(pwd)
+    cd $dir
+    for r in *
+    do
+      rock=$cur/$dir/$r
+      if [[ -d $rock ]]
+      then
+        cd $rock
+        for v in *
+        do
+          echo $r $v
+        done
+      fi
+    done
+    ;;
+
+  # === Publishing a lua app... ===========================================
+
   version) lua -e  "dofile('rockspec'); print(version)"
+    ;;
+
+  push_rock) push_rock
+    ;;
+
+  rockspec)
+    case "$2" in
+      filename)
+        lua -e  "dofile('rockspec'); print(package .. '-' .. version .. '.rockspec')"
+        ;;
+      *) echo "unknown command: $2"
+        exit 1
+        ;;
+    esac
     ;;
 
   bump)
