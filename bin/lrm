@@ -84,12 +84,21 @@ case "$1" in
   version) lua -e  "dofile('rockspec'); print(version)"
     ;;
 
-  bump_rockspect)
+  bump)
+    if [[ ! -z "$(git status --porcelain)" ]]
+    then
+      echo "Git repo not clean enough."
+      exit 1
+    fi
     cmd=$2
     old=$(lrm version)
     new=$(bump_lua_rock_ver $(lrm version) $cmd)
 
-    echo "$old $new"
+    sed -i -e "s/\"$old\"/\"$new\"/" rockspec
+    git add rockspec
+    git commit -m "$new (bumped $cmd)"
+    git tag "v$new"
+    echo "$new"
     ;;
 
   *) echo "Unknown command: $@"
