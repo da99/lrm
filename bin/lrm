@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+#
+#!/usr/bin/env node
+# -*- js   -*-
+#
+#!/usr/bin/env lua
+# -*- js   -*-
+#
+cmd=$1
+set -u -e -o pipefail
+
+
+mkdir -p conf
+touch conf/lua_rocks
+
+rocks=$(cat conf/lua_rocks)
+
+function remove_rocks() {
+  trash-put .rocks
+}
+
+function install_rocks() {
+  for rock in $rocks
+  do
+    luarocks install $rock --tree=.rocks
+  done
+}
+
+function list_rocks() {
+
+  for rock in $rocks
+  do
+    echo $rock
+  done
+
+}
+
+function install_config_file() {
+config_content="
+rocks_servers = {
+   [[http://luarocks.org/repositories/rocks]],
+   [[http://rocks.moonscript.org]],
+   [[https://raw.github.com/da99/rocks/master/rocks]]
+}
+
+rocks_trees = {
+   [[/usr/local]],
+   [[.rocks]]
+}
+"
+  config=/etc/luarocks/config.lua
+  if [[ ! -f $config.backup ]]
+  then
+    sudo cp $config $config.backup
+  fi
+
+  echo "$config_content" > /tmp/lua.config
+  sudo mv -f /tmp/lua.config $config
+}
+
+function init() {
+  if ! grep --quiet "^.rocks$" .gitignore
+  then
+    echo ".rocks" >> .gitignore
+  fi
+}
+
+case "$1" in
+
+  list) list_rocks
+    ;;
+
+  update) remove_rocks
+    install_rocks
+    ;;
+
+  install_config_file) install_config_file
+    ;;
+
+  init) init
+    ;;
+
+  version) lua -e  "dofile('rockspec'); print(version)"
+    ;;
+
+  bump_rockspect)
+    cmd=$2
+    old=$(lrm version)
+    new=$(bump_lua_rock_ver $(lrm version) $cmd)
+
+    echo "$old $new"
+    ;;
+
+  *) echo "Unknown command: $@"
+    exit 1
+    ;;
+
+esac
+
+

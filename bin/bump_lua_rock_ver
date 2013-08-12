@@ -1,0 +1,30 @@
+#!/usr/bin/env lua
+
+ver=arg[1]
+action=arg[2]
+
+local nums = {}
+for i in string.gmatch(ver, "%d+") do
+  nums[#nums+1] = i
+end
+
+
+if action == 'patch' or action == 'rev' then
+  nums[#nums] = nums[#nums] + 1
+end
+
+
+if action == 'minor' then
+  nums[#nums-1] = nums[#nums-1] + 1
+  nums[#nums]   = 0
+end
+
+if action == 'major' then
+  nums[#nums-2] = nums[#nums-2] + 1
+  nums[#nums-1] = 0
+  nums[#nums]   = 0
+end
+
+ver = table.concat(nums, ".", 1, (#nums-1))
+rev = nums[#nums]
+print(ver .. "-" .. rev)
