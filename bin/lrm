@@ -177,7 +177,7 @@ case "$1" in
     old=$(lrm version)
     new=$(bump_lua_rock_ver $(lrm version) $cmd)
 
-    sed -i -e "s/\"$old\"/\"$new\"/" rockspec
+    sed -i -e "s/\([^0-9]\)$old\([^0-9]\)/\1$new\2/g" rockspec
     git add rockspec
     git commit -m "$new (bumped $cmd)"
     git tag "v$new"
