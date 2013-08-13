@@ -60,6 +60,7 @@ rocks_trees = {
 }
 
 function push_rock () {
+  git push
   cp rockspec /apps/rocks/rocks/$(lrm rockspec filename)
   luarocks make --pack-binary-rock
 
