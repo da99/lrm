@@ -118,8 +118,18 @@ case "$1" in
   list)
     for file in .rocks/lib/luarocks/rocks/*/
     do
-      echo $file "==="
+      for v in ${file}*
+      do
+        echo $(basename $file) $(basename $v)
+      done
     done
+    ;;
+
+  git_add_bundle)
+    list=".rocks/bag.txt"
+    $0 list > $list
+    git add -f $list
+    echo -e "=== added:\n$list"
     ;;
 
   install)
