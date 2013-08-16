@@ -10,7 +10,23 @@
 cmd=$1
 set -u -e -o pipefail
 
+this="$(pwd)"
+me="$0"
+me_bin="$(dirname $me)"
+me_prefix="$(dirname $me_bin)"
+apps="$(dirname $me_prefix)"
 
+if [[ ! -d $apps/boot_ups ]]
+then
+  cd $apps
+  pwd
+  git clone https://github.com/da99/boot_ups
+else
+  cd $apps/boot_ups
+  git pull
+fi
+
+cd "$this"
 
 lua_rocks=conf/lua_rocks
 deploy_rocks=conf/lua_rocks.deploy
@@ -78,11 +94,11 @@ function push_rock () {
 }
 
 function init() {
-  mkdir -p conf
-  if [[ ! -f $lua_rocks ]]
+  if [[ ! -d .rocks/bin ]]
   then
-    echo penlight   >> $lua_rocks
-    echo underscore >> $lua_rocks
+    mkdir -p .rocks
+    echo -e "\n=== Installing into $(pwd)/.rocks"
+    $apps/boot_ups/bin/install_luarocks
   fi
 
   touch .gitignore
