@@ -10,6 +10,7 @@
 cmd=$1
 set -u -e -o pipefail
 
+bundle=".rocks/bundle.txt"
 this="$(pwd)"
 me="$0"
 me_bin="$(dirname $me)"
@@ -125,11 +126,25 @@ case "$1" in
     done
     ;;
 
+  install_bundle)
+    if [[ ! -f $bundle ]]
+    then
+      echo "No file found: $bundle"
+      exit 0
+    fi
+    # === From:
+    #     http://en.kioskea.net/faq/1757-how-to-read-a-file-line-by-line
+    cat $bundle | while read r
+    do
+      echo -e "\n=== Installing: $r"
+      .rocks/bin/luarocks install $r --server=http://rocks.moonscript.org 
+    done
+    ;;
+
   git_add_bundle)
-    list=".rocks/bag.txt"
-    $0 list > $list
-    git add -f $list
-    echo -e "=== added:\n$list"
+    $0 list > $bundle
+    git add -f $bundle
+    echo -e "=== added:\n$bundle"
     ;;
 
   install)
