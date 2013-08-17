@@ -1,0 +1,22 @@
+#!/usr/bin/env lua
+
+
+local f = loadfile(arg[1])
+f()
+
+if #dependencies == 0 then
+  print("")
+else
+  for i = 1, #dependencies do
+    local str = dependencies[i]
+    local pieces = {}
+    for w in string.gmatch(str, "%S+") do
+      pieces[#pieces + 1] = w
+    end
+    if not (pieces[1] == "lua") then
+      print('"' .. str .. '"')
+    end
+  end
+end
+
+

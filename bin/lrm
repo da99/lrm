@@ -17,6 +17,31 @@ me_bin="$(dirname $me)"
 me_prefix="$(dirname $me_bin)"
 apps="$(dirname $me_prefix)"
 
+function install_from_rockspec() {
+  file=""
+  if [[ -f .rockspec ]]
+  then
+    file=".rockspec"
+  else
+    if [[ -f rockspec ]]
+    then
+      file=rockspec
+    fi
+  fi
+
+  if [[ -z "$file" ]]
+  then
+    echo "One of these is required: rockspec , .rockspec" 1>&2
+    exit 1
+  fi
+
+  echo "$( $me_bin/lua_list_rocks_from_rockspec $file )"  | while read line
+  do
+    $me install $line
+  done
+} # === install_from_rockspect
+
+
 function update_boots() {
   if [[ ! -d $apps/boot_ups ]]
   then
@@ -27,7 +52,6 @@ function update_boots() {
     cd $apps/boot_ups
     git pull
   fi
-
   cd "$this"
 }
 
@@ -98,7 +122,7 @@ function push_rock () {
 
 function init() {
   update_boots
-  if [[ ! -d .rocks/bin ]]
+  if [[ ! -f .rocks/bin/luarocks ]]
   then
     mkdir -p .rocks
     echo -e "\n=== Installing into $(pwd)/.rocks"
@@ -149,7 +173,12 @@ case "$1" in
 
   install)
     shift
-    luarocks --tree=.rocks install "$@"
+    if [[ -z "$@" ]]
+    then
+      install_from_rockspec
+    else
+      luarocks --tree=.rocks install "$@"
+    fi
     ;;
 
   update_all)
