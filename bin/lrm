@@ -176,6 +176,7 @@ case "$1" in
     ;;
 
   install)
+    shift
     .rocks/bin/luarocks install "$@"
     ;;
 
