@@ -108,7 +108,7 @@ function init() {
   touch .gitignore
   if ! grep --quiet "^.rocks$" .gitignore
   then
-    echo ".rocks" >> .gitignore
+    echo "/.rocks/" >> .gitignore
   fi
 }
 
