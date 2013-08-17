@@ -14,7 +14,7 @@ else
       pieces[#pieces + 1] = w
     end
     if not (pieces[1] == "lua") then
-      print('"' .. str .. '"')
+      print(str)
     end
   end
 end

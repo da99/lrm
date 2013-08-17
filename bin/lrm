@@ -171,14 +171,12 @@ case "$1" in
     echo -e "=== added:\n$bundle"
     ;;
 
+  install_deps)
+    install_from_rockspec
+    ;;
+
   install)
-    shift
-    if [[ -z "$@" ]]
-    then
-      install_from_rockspec
-    else
-      luarocks --tree=.rocks install "$@"
-    fi
+    .rocks/bin/luarocks install "$@"
     ;;
 
   update_all)
