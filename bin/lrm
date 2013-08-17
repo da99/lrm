@@ -11,7 +11,7 @@ cmd=$1
 set -u -e -o pipefail
 
 install_luarocks=https://raw.github.com/da99/boot_ups/master/bin/install/luarocks
-luarocks=".rocks/bin/luarocks --server=http://rocks.moonscript.org "
+luarocks=".rocks/bin/luarocks"
 bundle=".rocks/bundle.txt"
 this="$(pwd)"
 me="$0"
@@ -73,18 +73,22 @@ rocks_servers = {
 }
 
 rocks_trees = {
-   [[/usr/local]],
    [[.rocks]]
 }
 "
-  config=/etc/luarocks/config.lua
-  if [[ ! -f $config.backup ]]
+  config=$(ls .rocks/etc/luarocks/config-*.lua | tail -n 1)
+  if [[ ! -f $config ]]
   then
-    sudo cp $config $config.backup
+    echo "LuaRocks config file not found." 1>&2
+    exit 1
   fi
 
-  echo "$config_content" > /tmp/lua.config
-  sudo mv -f /tmp/lua.config $config
+  if [[ ! -f $config.backup ]]
+  then
+    cp $config $config.backup
+    echo "$config_content" > $config
+    echo "Config file installed: $config"
+  fi
 }
 
 function push_rock () {
@@ -120,6 +124,8 @@ function init() {
   then
     echo "$dir" >> .gitignore
   fi
+
+  install_config_file
 }
 
 case "$1" in
