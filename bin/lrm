@@ -83,12 +83,9 @@ rocks_trees = {
     exit 1
   fi
 
-  if [[ ! -f $config.backup ]]
-  then
-    cp $config $config.backup
-    echo "$config_content" > $config
-    echo "Config file installed: $config"
-  fi
+  cp $config $config.backup
+  echo "$config_content" > $config
+  echo "Config file updated: $config"
 }
 
 function push_rock () {
@@ -110,8 +107,10 @@ function push_rock () {
 }
 
 function init() {
-  if [[ ! -f .rocks/bin/luarocks ]]
+  if [[ -f .rocks/bin/luarocks ]]
   then
+    echo "LuaRocks already installed."
+  else
     mkdir -p .rocks
     echo -e "\n=== Installing into $(pwd)/.rocks"
     curl -fsS -L $install_luarocks | bash > /dev/null
@@ -126,6 +125,7 @@ function init() {
   fi
 
   install_config_file
+  echo -e "lrm init is done.\n"
 }
 
 case "$1" in
