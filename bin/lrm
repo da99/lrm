@@ -102,7 +102,7 @@ function init() {
   then
     mkdir -p .rocks
     echo -e "\n=== Installing into $(pwd)/.rocks"
-    $apps/boot_ups/bin/install_luarocks
+    $apps/boot_ups/bin/install/luarocks
   fi
 
   touch .gitignore
