@@ -10,6 +10,7 @@
 cmd=$1
 set -u -e -o pipefail
 
+luarocks=".rocks/bin/luarocks --server=http://rocks.moonscript.org "
 bundle=".rocks/bundle.txt"
 this="$(pwd)"
 me="$0"
@@ -17,7 +18,7 @@ me_bin="$(dirname $me)"
 me_prefix="$(dirname $me_bin)"
 apps="$(dirname $me_prefix)"
 
-function install_from_rockspec() {
+function print_rockspec() {
   file=""
   if [[ -f .rockspec ]]
   then
@@ -28,18 +29,14 @@ function install_from_rockspec() {
       file=rockspec
     fi
   fi
-
   if [[ -z "$file" ]]
   then
     echo "One of these is required: rockspec , .rockspec" 1>&2
     exit 1
+  else
+    echo $file
   fi
-
-  echo "$( $me_bin/lua_list_rocks_from_rockspec $file )"  | while read line
-  do
-    $me install $line
-  done
-} # === install_from_rockspect
+}
 
 
 function update_boots() {
@@ -150,6 +147,14 @@ case "$1" in
     done
     ;;
 
+  print_rockspec)
+    print_rockspec
+    ;;
+
+  print_package_name)
+    echo "$(lua -e "f=loadfile '$(print_rockspec)'; f(); print(package)")"
+    ;;
+
   install_bundle)
     if [[ ! -f $bundle ]]
     then
@@ -161,7 +166,7 @@ case "$1" in
     cat $bundle | while read r
     do
       echo -e "\n=== Installing: $r"
-      .rocks/bin/luarocks install $r --server=http://rocks.moonscript.org 
+      $luarocks install $r 
     done
     ;;
 
