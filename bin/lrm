@@ -10,6 +10,7 @@
 cmd=$1
 set -u -e -o pipefail
 
+install_luarocks=https://raw.github.com/da99/boot_ups/master/bin/install/luarocks
 luarocks=".rocks/bin/luarocks --server=http://rocks.moonscript.org "
 bundle=".rocks/bundle.txt"
 this="$(pwd)"
@@ -17,6 +18,10 @@ me="$0"
 me_bin="$(dirname $me)"
 me_prefix="$(dirname $me_bin)"
 apps="$(dirname $me_prefix)"
+
+lua_rocks=conf/lua_rocks
+deploy_rocks=conf/lua_rocks.deploy
+install_rock="luarocks install --tree=.rocks"
 
 function print_rockspec() {
   file=""
@@ -38,23 +43,6 @@ function print_rockspec() {
   fi
 }
 
-
-function update_boots() {
-  if [[ ! -d $apps/boot_ups ]]
-  then
-    cd $apps
-    pwd
-    git clone https://github.com/da99/boot_ups
-  else
-    cd $apps/boot_ups
-    git pull
-  fi
-  cd "$this"
-}
-
-lua_rocks=conf/lua_rocks
-deploy_rocks=conf/lua_rocks.deploy
-install_rock="luarocks install --tree=.rocks"
 
 function read_rocks() {
   rocks=$(cat conf/lua_rocks)
@@ -118,18 +106,19 @@ function push_rock () {
 }
 
 function init() {
-  update_boots
   if [[ ! -f .rocks/bin/luarocks ]]
   then
     mkdir -p .rocks
     echo -e "\n=== Installing into $(pwd)/.rocks"
-    $apps/boot_ups/bin/install/luarocks
+    curl -fsS -L $install_luarocks | bash > /dev/null
+    echo -e "Done.\n"
   fi
 
   touch .gitignore
-  if ! grep --quiet "^.rocks$" .gitignore
+  dir="/.rocks/"
+  if ! grep --quiet "^$dir$" .gitignore
   then
-    echo "/.rocks/" >> .gitignore
+    echo "$dir" >> .gitignore
   fi
 }
 
