@@ -67,13 +67,13 @@ function install_all() {
 function install_config_file() {
 config_content="
 rocks_servers = {
-   [[http://luarocks.org/repositories/rocks]],
-   [[http://rocks.moonscript.org]],
-   [[https://raw.github.com/da99/rocks/master/rocks]]
+  [[http://luarocks.org/repositories/rocks]],
+  [[http://rocks.moonscript.org]],
+  [[https://raw.github.com/da99/rocks/master/rocks]]
 }
 
 rocks_trees = {
-   [[.rocks]]
+  [[$(pwd)/.rocks]]
 }
 "
   config=$(ls .rocks/etc/luarocks/config-*.lua | tail -n 1)
