@@ -96,7 +96,11 @@ function push_rock () {
   mv *.rock /apps/rocks/rocks
 
   cd /apps/rocks
-  luarocks-admin make-manifest rocks
+  if [[ ! -d .rocks/bin ]]
+  then
+    lrm init
+  fi
+  .rocks/bin/luarocks-admin make-manifest rocks
 
   git add rocks/*
   if [[ ! -z "$(git status --porcelain)" ]]
@@ -252,8 +256,11 @@ case "$1" in
     cmd=$2
     old=$(lrm version)
     new=$(bump_lua_rock_ver $(lrm version) $cmd)
+    old_sha=$(lua -e "dofile('rockspec'); print(source.tag)")
+    new_sha="$(git log -1 --format="%h")"
 
     sed -i -e "s/\([^0-9]\)$old\([^0-9]\)/\1$new\2/g" rockspec
+    sed -i -e "s!v$old!v$new!" rockspec
     git add rockspec
     git commit -m "$new (bumped $cmd)"
     git tag "v$new"
